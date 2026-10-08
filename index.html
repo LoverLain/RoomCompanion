@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Room Companion — Physical AI Companion</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+<style>
+:root{--bg:#05070d;--fg:#f3f6fc;--mut:#a4afc6;--ac:#4f9dff;--cy:#3de0ff;--card:rgba(255,255,255,.04);--ln:rgba(255,255,255,.09);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(1000px 700px at 78% 30%,#0f1b3d 0,transparent 62%),radial-gradient(800px 600px at 0 100%,#0a1126 0,transparent 60%),var(--bg)}
+body:before{content:"";position:fixed;inset:0;background-image:linear-gradient(var(--ln) 1px,transparent 1px),linear-gradient(90deg,var(--ln) 1px,transparent 1px);background-size:72px 72px;opacity:.18;mask-image:radial-gradient(circle at 70% 40%,#000,transparent 70%)}
+#cv{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;transition:opacity 1s}
+#scrim{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:1;transition:opacity .8s;background:linear-gradient(90deg,rgba(5,7,13,.96) 0,rgba(5,7,13,.82) 34%,rgba(5,7,13,0) 62%)}
+header,footer{position:fixed;left:0;right:0;z-index:6;display:flex;align-items:center;justify-content:space-between;padding:0 6vw}
+header{top:calc(3.2vh + env(safe-area-inset-top,0px));font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.lg{display:flex;align-items:center;gap:10px;color:var(--fg);font-weight:600}
+#sec{font-weight:500}
+footer{bottom:calc(3vh + env(safe-area-inset-bottom,0px));gap:24px;font-size:12px;color:var(--mut)}
+#pg{flex:1;height:2px;background:var(--ln);border-radius:2px;overflow:hidden}
+#pgb{display:block;height:100%;width:0;background:var(--ac);transition:width .8s}
+#nav{display:flex;gap:8px}
+#nav button{width:36px;height:36px;border-radius:10px;border:1px solid var(--ln);background:var(--card);color:var(--fg);cursor:pointer;font-size:15px}
+#nav button:hover{border-color:var(--ac)}
+.s{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;padding:14vh 8vw 12vh;opacity:0;visibility:hidden;transition:opacity .8s,visibility .8s;z-index:2}
+.s.on{opacity:1;visibility:visible}
+.a{opacity:0;transform:translateY(22px);transition:opacity .8s ease,transform .8s ease;transition-delay:calc(var(--i,0)*.1s + .2s)}
+.on .a{opacity:1;transform:none}
+.ey{display:flex;align-items:center;gap:12px;color:var(--ac);font-weight:600;letter-spacing:.2em;font-size:12px;text-transform:uppercase;margin-bottom:22px}
+.ey:before{content:"";width:28px;height:2px;background:var(--ac)}
+h1{font-size:clamp(40px,6vw,84px);line-height:1.02;font-weight:700;letter-spacing:-.035em}
+h2{font-size:clamp(28px,3.8vw,52px);line-height:1.1;font-weight:700;letter-spacing:-.03em;margin-bottom:34px;max-width:20ch}
+.hl{color:var(--cy)}
+.lead{color:var(--mut);font-size:clamp(15px,1.5vw,20px);line-height:1.55;max-width:46ch;margin-top:26px}
+.col{max-width:min(560px,44vw)}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.c{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02));border:1px solid var(--ln);border-radius:16px;padding:24px;backdrop-filter:blur(12px)}
+.c b{display:block;font-size:clamp(16px,1.5vw,19px);font-weight:600;margin:16px 0 8px}
+.c span{color:var(--mut);font-size:clamp(13px,1.15vw,15px);line-height:1.55}
+.ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(79,157,255,.12);border:1px solid rgba(79,157,255,.3);color:var(--cy)}
+.ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.num{font-size:12px;letter-spacing:.14em;color:var(--ac);font-weight:600}
+.meta{display:flex;gap:34px;margin-top:44px;padding-top:22px;border-top:1px solid var(--ln);max-width:520px}
+.meta div{font-size:12px;color:var(--mut)}.meta b{display:block;color:var(--fg);font-size:15px;margin-top:4px;font-weight:600}
+.flow{display:grid;grid-template-columns:repeat(6,1fr);gap:0;margin-top:6px}
+.nd{position:relative;padding:0 12px 0 0}
+.nd:before{content:"";position:absolute;left:0;top:14px;height:2px;width:100%;background:var(--ln)}
+.nd:after{content:"";position:absolute;left:0;top:14px;height:2px;width:0;background:var(--cy);transition:width .9s ease;transition-delay:calc(var(--i)*.3s + .6s)}
+.on .nd:after{width:100%}
+.nd i{position:relative;z-index:1;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--bg);border:2px solid var(--cy);font-style:normal;font-size:11px;font-weight:700;color:var(--cy)}
+.nd.cl i{border-color:var(--ac);color:var(--ac)}
+.nd b{display:block;margin:18px 0 6px;font-size:clamp(14px,1.3vw,17px);font-weight:600}
+.nd span{display:block;color:var(--mut);font-size:clamp(12px,1vw,14px);line-height:1.45}
+.bd{display:inline-block;margin-top:10px;font-size:10px;letter-spacing:.14em;padding:4px 8px;border-radius:6px;border:1px solid var(--ln);color:var(--cy)}
+.nd.cl .bd{color:var(--ac)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:6vw;align-items:center}
+.phone{background:#0a0f1d;border:1px solid var(--ln);border-radius:22px;padding:22px;display:flex;flex-direction:column;gap:12px;max-width:460px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.ph{display:flex;align-items:center;gap:10px;padding-bottom:14px;border-bottom:1px solid var(--ln);font-size:13px;color:var(--mut)}
+.ph:before{content:"";width:9px;height:9px;border-radius:50%;background:var(--cy);box-shadow:0 0 12px var(--cy)}
+.b{padding:13px 17px;border-radius:16px;font-size:clamp(15px,1.5vw,19px);max-width:82%}
+.b.ai{background:rgba(79,157,255,.16);border:1px solid rgba(79,157,255,.4);align-self:flex-start;border-bottom-left-radius:4px}
+.b.u{background:var(--card);border:1px solid var(--ln);align-self:flex-end;border-bottom-right-radius:4px}
+.st{display:flex;gap:16px;padding:18px 0;border-bottom:1px solid var(--ln)}
+.st:last-child{border:0}.st .num{padding-top:3px}.st b{display:block;font-size:clamp(15px,1.4vw,18px);margin-bottom:4px;font-weight:600}.st span{color:var(--mut);font-size:clamp(13px,1.1vw,15px);line-height:1.5}
+.bars{display:flex;flex-direction:column;gap:18px}
+.br{display:grid;grid-template-columns:150px 1fr 70px;gap:16px;align-items:center;font-size:clamp(13px,1.2vw,16px)}
+.br em{font-style:normal;color:var(--mut)}
+.tr{height:10px;border-radius:5px;background:var(--ln);overflow:hidden}
+.tr i{display:block;height:100%;width:0;border-radius:5px;background:linear-gradient(90deg,var(--ac),var(--cy));transition:width 1.4s cubic-bezier(.2,.8,.2,1);transition-delay:calc(var(--i)*.15s + .5s)}
+.on .tr i{width:var(--w)}
+.kp{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.kp .c{padding:20px}.kp .n{font-size:clamp(26px,3vw,40px);font-weight:700;letter-spacing:-.02em}.kp span{display:block;margin-top:6px}
+.rm{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.rm .c{padding:20px;position:relative;overflow:hidden}
+.rm .c:before{content:"";position:absolute;left:0;top:0;height:3px;width:0;background:linear-gradient(90deg,var(--ac),var(--cy));transition:width 1s;transition-delay:calc(var(--i)*.12s + .6s)}
+.on .rm .c:before{width:100%}
+.rm b{margin:10px 0 6px;font-size:clamp(14px,1.3vw,17px)}
+.end{align-items:center;justify-content:flex-end;text-align:center;padding-bottom:14vh}
+.end h1{font-size:clamp(34px,5.6vw,76px)}
+.end .ln{width:0;height:1px;background:linear-gradient(90deg,transparent,var(--cy),transparent);margin:30px auto 22px;transition:width 1.6s .6s}
+.end.on .ln{width:min(460px,70vw)}
+.dta{letter-spacing:.42em;text-transform:uppercase;font-size:clamp(12px,1.3vw,16px);color:var(--mut);font-weight:500}
+#info{position:fixed;left:8vw;top:50%;transform:translateY(-50%);width:min(370px,84vw);opacity:0;transition:opacity .6s;z-index:4;padding:26px;background:rgba(8,12,24,.82)}
+#info.v{opacity:1}
+#info .tg{color:var(--ac);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:600}
+#info h3{font-size:clamp(20px,2vw,26px);margin:10px 0;font-weight:600;letter-spacing:-.01em}
+#info p{color:var(--mut);line-height:1.55;font-size:14px}
+#info .sp{margin-top:14px;padding-top:14px;border-top:1px solid var(--ln);font-size:12px;color:var(--fg);letter-spacing:.06em}
+#info .pr{margin-top:6px;color:var(--cy);font-weight:600;font-size:18px}
+@media(max-width:820px){.s{padding:13vh 6vw 11vh;overflow:auto;justify-content:flex-start}.col{max-width:100%}.flow{grid-template-columns:1fr 1fr;gap:20px}.nd:before,.nd:after{display:none}.two,.rm{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.br{grid-template-columns:90px 1fr 56px}#info{top:auto;bottom:9vh;transform:none;left:5vw}#scrim{background:linear-gradient(180deg,rgba(5,7,13,.5),rgba(5,7,13,.92) 60%)}.end{justify-content:flex-end}}
+@media(prefers-reduced-motion:reduce){.a,.s{transition:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="mem" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7"/></symbol>
+<symbol id="voice" viewBox="0 0 24 24"><path d="M3 12h2M7 8v8M11 4v16M15 8v8M19 10v4M21 12h0"/></symbol>
+<symbol id="pwr" viewBox="0 0 24 24"><path d="M12 3v9"/><path d="M6.4 6.6a8 8 0 1 0 11.2 0"/></symbol>
+<symbol id="chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></symbol>
+<symbol id="edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></symbol>
+<symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-4 3-6 6.5-6s6 2 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.2.6 3.5 2.4 3.8 6"/></symbol>
+<symbol id="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+</defs></svg>
+<header><div class="lg"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3de0ff" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="#3de0ff"/></svg>Room Companion</div><div id="sec"></div></header>
+<canvas id="cv"></canvas><div id="scrim"></div>
+
+<section class="s on" data-t="Engineering blueprint">
+  <div class="col">
+    <div class="ey a">Physical AI Companion</div>
+    <h1 class="a" style="--i:1">ИИ, который живёт<br>в вашей комнате</h1>
+    <p class="lead a" style="--i:2">Не умная колонка, а постоянный персонаж: он видит, слышит, помнит и сам решает, когда заговорить.</p>
+    <div class="meta a" style="--i:3"><div>Платформа<b>Raspberry Pi 5</b></div><div>Режим<b>Local-first</b></div><div>Этап<b>Prototype v1</b></div></div>
+  </div>
+</section>
+
+<section class="s" data-t="01 · Концепция">
+  <div class="ey a">01 · Суть проекта</div>
+  <h2 class="a" style="--i:1">Три слоя — один компаньон</h2>
+  <div class="grid">
+    <div class="c a" style="--i:2"><div class="ic"><svg><use href="#chip"/></svg></div><b>Физическое устройство</b><span>Камера глубины, массив микрофонов, динамик, светодиодное кольцо и гимбал, который поворачивается к человеку.</span></div>
+    <div class="c a" style="--i:3"><div class="ic"><svg><use href="#mem"/></svg></div><b>ИИ, память, модель мира</b><span>Узнаёт по лицу, голосу и контексту. Помнит разговоры, людей и события месяцами.</span></div>
+    <div class="c a" style="--i:4"><div class="ic"><svg><use href="#edit"/></svg></div><b>Persona Studio</b><span>Десктоп-приложение: характер, голос, аватар, просмотр памяти, приватность и устройства.</span></div>
+  </div>
+</section>
+
+<section class="s" data-t="02 · Устройство"></section>
+
+<section class="s" data-t="03 · Архитектура">
+  <div class="ey a">03 · Как он думает</div>
+  <h2 class="a" style="--i:1">От сенсоров к живой реакции</h2>
+  <div class="flow">
+    <div class="nd a" style="--i:1"><i>1</i><b>Сенсоры</b><span>Камера, микрофоны, глубина</span><em class="bd">DEVICE</em></div>
+    <div class="nd a" style="--i:2"><i>2</i><b>Восприятие</b><span>Лица, голос, объекты на Coral TPU</span><em class="bd">LOCAL</em></div>
+    <div class="nd a" style="--i:3"><i>3</i><b>Идентичность</b><span>Кто это, где и в каком контексте</span><em class="bd">LOCAL</em></div>
+    <div class="nd a" style="--i:4"><i>4</i><b>Память</b><span>События и факты в PostgreSQL + pgvector</span><em class="bd">LOCAL</em></div>
+    <div class="nd cl a" style="--i:5"><i>5</i><b>Личность + LLM</b><span>Характер и рассуждение модели</span><em class="bd">LOCAL / CLOUD</em></div>
+    <div class="nd a" style="--i:6"><i>6</i><b>Действие</b><span>Речь, свет, поворот головы</span><em class="bd">DEVICE</em></div>
+  </div>
+  <div class="grid" style="margin-top:44px">
+    <div class="c a" style="--i:7;padding:18px"><span><b style="margin:0 0 6px">События, а не кадры</b>Сохраняется смысл («Олег вошёл»), а не каждый кадр и секунда звука.</span></div>
+    <div class="c a" style="--i:8;padding:18px"><span><b style="margin:0 0 6px">Слияние аудио и видео</b>Голос и лицо подтверждают друг друга, поэтому узнавание точнее.</span></div>
+    <div class="c a" style="--i:9;padding:18px"><span><b style="margin:0 0 6px">Решает, когда говорить</b>Движок оценивает контекст и выбирает: заговорить или промолчать.</span></div>
+  </div>
+</section>
+
+<section class="s" data-t="04 · Сценарий">
+  <div class="ey a">04 · Демо 1 — «Шляпа»</div>
+  <h2 class="a" style="--i:1">Узнаёт, даже когда лицо скрыто</h2>
+  <div class="two">
+    <div class="phone a" style="--i:2"><div class="ph">Companion · гостиная</div>
+      <div class="b ai a" style="--i:3">Олег, это ты?</div>
+      <div class="b u a" style="--i:5">Да.</div>
+      <div class="b ai a" style="--i:7">Добро пожаловать домой.</div></div>
+    <div>
+      <div class="st a" style="--i:3"><span class="num">01</span><div><b>Видит</b><span>Заходит человек, лицо частично закрыто. Система оценивает силуэт, походку и голос.</span></div></div>
+      <div class="st a" style="--i:5"><span class="num">02</span><div><b>Уточняет</b><span>Уверенности недостаточно, поэтому устройство спрашивает, а не гадает.</span></div></div>
+      <div class="st a" style="--i:7"><span class="num">03</span><div><b>Вспоминает</b><span>Подтверждение закрепляет узнавание, и подключается прошлый контекст.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="s" data-t="05 · Приватность">
+  <div class="ey a">05 · Приватность</div>
+  <h2 class="a" style="--i:1">Контроль — у вас в руках</h2>
+  <div class="grid">
+    <div class="c a" style="--i:2"><div class="ic"><svg><use href="#pwr"/></svg></div><b>Аппаратный выключатель</b><span>Тумблер физически отключает сенсоры. Это не программная иконка.</span></div>
+    <div class="c a" style="--i:3"><div class="ic"><svg><use href="#lock"/></svg></div><b>Локальная обработка</b><span>Распознавание и память работают на устройстве. Облако включается только по желанию.</span></div>
+    <div class="c a" style="--i:4"><div class="ic"><svg><use href="#edit"/></svg></div><b>Управление памятью</b><span>Просмотр, правка, экспорт и удаление любых воспоминаний.</span></div>
+    <div class="c a" style="--i:5"><div class="ic"><svg><use href="#users"/></svg></div><b>Режимы доступа</b><span>Гостевой режим, приватные разговоры и правила для каждой комнаты.</span></div>
+  </div>
+</section>
+
+<section class="s" data-t="06 · Прототип">
+  <div class="ey a">06 · Прототип в цифрах</div>
+  <h2 class="a" style="--i:1">Реалистично собрать самому</h2>
+  <div class="two">
+    <div class="bars">
+      <div class="br a" style="--i:2"><em>Зрение</em><div class="tr"><i style="--w:100%;--i:0"></i></div><b>$350</b></div>
+      <div class="br a" style="--i:3"><em>Вычисления</em><div class="tr"><i style="--w:40%;--i:1"></i></div><b>$140</b></div>
+      <div class="br a" style="--i:4"><em>Звук</em><div class="tr"><i style="--w:26%;--i:2"></i></div><b>$90</b></div>
+      <div class="br a" style="--i:5"><em>Прочее</em><div class="tr"><i style="--w:17%;--i:3"></i></div><b>$60</b></div>
+      <div class="lead a" style="--i:6;margin:0;font-size:13px">Серво, питание, подсветка, корпус и крепёж. Печатные детали не включены.</div>
+    </div>
+    <div class="kp">
+      <div class="c a" style="--i:3"><div class="n hl">~$650</div><span>комплектующие</span></div>
+      <div class="c a" style="--i:4"><div class="n hl">22</div><span>позиции BOM</span></div>
+      <div class="c a" style="--i:5"><div class="n hl">150×235×150</div><span>мм, габариты</span></div>
+      <div class="c a" style="--i:6"><div class="n hl">17</div><span>шагов сборки</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="s" data-t="07 · Дорожная карта">
+  <div class="ey a">07 · Дорожная карта</div>
+  <h2 class="a" style="--i:1">8 этапов от голоса до характера</h2>
+  <div class="rm">
+    <div class="c a" style="--i:2"><span class="num">PHASE 01</span><b>Десктоп-компаньон</b><span>Голос, LLM, базовая память</span></div>
+    <div class="c a" style="--i:3"><span class="num">PHASE 02</span><b>Долгая память</b><span>Люди, события, предпочтения</span></div>
+    <div class="c a" style="--i:4"><span class="num">PHASE 03</span><b>Зрение</b><span>Компьютерное зрение и идентификация</span></div>
+    <div class="c a" style="--i:5"><span class="num">PHASE 04</span><b>Физический прототип</b><span>Гимбал, свет, сенсоры</span></div>
+    <div class="c a" style="--i:6"><span class="num">PHASE 05</span><b>Модель мира</b><span>Память событий из потока сенсоров</span></div>
+    <div class="c a" style="--i:7"><span class="num">PHASE 06</span><b>Persona Studio</b><span>Редактор персонажей и голоса</span></div>
+    <div class="c a" style="--i:8"><span class="num">PHASE 07</span><b>Мульти-устройства</b><span>Один компаньон в разных комнатах</span></div>
+    <div class="c a" style="--i:9"><span class="num">PHASE 08</span><b>Проактивность</b><span>Умное решение: говорить или молчать</span></div>
+  </div>
+</section>
+
+<section class="s end" data-t="Спасибо">
+  <div class="ey a" style="justify-content:center">Спасибо за внимание</div>
+  <h1 class="a" style="--i:1">Room Companion</h1>
+  <div class="ln"></div>
+  <div class="dta a" style="--i:4">Designed by DTA</div>
+</section>
+
+<div id="info" class="c"><div class="tg" id="it"></div><h3 id="in"></h3><p id="id"></p><div class="sp" id="isp"></div><div class="pr" id="ip"></div></div>
+<svg id="ld" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .4s;z-index:3"><line id="ln1" stroke="#3de0ff" stroke-width="1.5" stroke-opacity=".85"/><circle id="dt" r="5" fill="#3de0ff"/></svg>
+<footer><span id="cn"></span><div id="pg"><i id="pgb"></i></div><div id="nav"><button id="pv" aria-label="Назад">←</button><button id="nx" aria-label="Вперёд">→</button></div></footer>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const S=[...document.querySelectorAll('.s')],cv=document.getElementById('cv'),scrim=document.getElementById('scrim');
+let cur=0,t0=0;
+function go(n){cur=Math.max(0,Math.min(S.length-1,n));S.forEach((s,i)=>s.classList.toggle('on',i===cur));t0=performance.now();
+  scrim.style.opacity=cur===0?1:0;cn.textContent=String(cur+1).padStart(2,'0')+' / '+String(S.length).padStart(2,'0');pgb.style.width=((cur+1)/S.length*100)+'%';sec.textContent=S[cur].dataset.t;
+  if(S[cur].dataset.t!=='02 · Устройство')document.getElementById('info').classList.remove('v')}
+pv.onclick=()=>go(cur-1);nx.onclick=()=>go(cur+1);
+addEventListener('keydown',e=>{if(['ArrowRight','ArrowDown',' ','PageDown'].includes(e.key))go(cur+1);if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key))go(cur-1)});
+let sx=0;addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-sx;if(Math.abs(d)>50)go(cur+(d<0?1:-1))});
+/* ---------- 3D ---------- */
+const R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.1;R.outputEncoding=THREE.sRGBEncoding;
+const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(32,1,.1,500);
+const es=new THREE.Scene();es.background=new THREE.Color(0x090d1a);
+[[0,30,0,60,2,60,0xffffff,3],[40,10,20,2,40,40,0x7ad7ff,4],[-40,10,-10,2,40,40,0x9b7bff,3],[0,5,-50,60,30,2,0xffffff,1.5]].forEach(a=>{const m=new THREE.Mesh(new THREE.BoxGeometry(a[3],a[4],a[5]),new THREE.MeshBasicMaterial({color:new THREE.Color(a[6]).multiplyScalar(a[7])}));m.position.set(a[0],a[1],a[2]);es.add(m)});
+sc.environment=new THREE.PMREMGenerator(R).fromScene(es,.03).texture;
+const dl=new THREE.DirectionalLight(0xffffff,.9);dl.position.set(25,40,30);sc.add(dl);
+const rim=new THREE.PointLight(0x7b6bff,1.4,160);rim.position.set(-35,20,-25);sc.add(rim);
+const core=new THREE.PointLight(0x3de0ff,1.6,40);core.position.set(0,10.5,0);
+const G=new THREE.Group();sc.add(G);G.add(core);
+const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+const mat=(c,m=.5,r=.4,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c,metalness:m,roughness:r},o));
+const bx=(w,h,d,c,x,y,z,m,r,o)=>{const k=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c,m,r,o));k.position.set(x,y,z);return k};
+const cy=(rt,rb,h,c,x,y,z,m,r,o,rx)=>{const k=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,36),mat(c,m,r,o));k.position.set(x,y,z);if(rx)k.rotation.x=rx;return k};
+const grp=(...a)=>{const g=new THREE.Group();a.forEach(k=>g.add(k));return g};
+const P=[];
+function part(name,tag,desc,price,spec,obj,pos,ex){
+  obj.position.set(...pos);G.add(obj);const mats=[];
+  obj.traverse(k=>{if(k.isMesh&&k.material.emissive&&!k.userData.led)mats.push([k.material,k.material.emissive.clone(),k.material.emissiveIntensity])});
+  obj.userData={name,tag,desc,price,spec,pos:V(...pos),ex:V(...ex),mats};P.push(obj);return obj}
+function servo(){const g=grp(bx(2.3,2.9,1.2,0x2b6cff,0,0,0,.2,.5),bx(3.4,.25,1.2,0x2b6cff,0,.7,0,.2,.5),cy(.45,.45,.5,0xdfe6f5,.55,1.65,0,.3,.4),bx(2.2,.18,.45,0xf2f5ff,.55,1.95,0,.1,.6),cy(.12,.12,2,0x151a28,-.8,-1.2,-.7,0,.9));return g}
+function mkServo(){return servo()}
+// 0 shell + cap + feet
+const sh=new THREE.Mesh(new THREE.CylinderGeometry(7.3,7.6,14,72,1,true),new THREE.MeshPhysicalMaterial({color:0x8fa6ff,metalness:.1,roughness:.06,transparent:true,opacity:.2,clearcoat:1,clearcoatRoughness:.04,side:THREE.DoubleSide,depthWrite:false,envMapIntensity:1.8}));sh.position.y=7;
+const cap=new THREE.Mesh(new THREE.LatheGeometry([[1.9,0],[7.5,0],[7.5,.5],[1.9,.5]].map(p=>new THREE.Vector2(p[0],p[1])),72),mat(0x10141f,.8,.25,{side:THREE.DoubleSide}));cap.position.y=14;
+part('Внешний корпус','Корпус','Дымчатая оболочка с тёмной крышкой и резиновыми опорами — изолирует вибрацию динамика от стола.','~$8','PETG · 3D-печать',grp(sh,cap,...[[1,1],[-1,1],[1,-1],[-1,-1]].map(q=>cy(.9,.9,.4,0x0b0d14,q[0]*5,-.2,q[1]*5,0,.9))),[0,0,0],[0,-29,0]);
+// 1 chassis
+part('Центральное шасси','Структура','Каркас с проставками: держит вычислитель, крепёжные вставки M3 залиты в печать.','~$4.5','PETG · 40% заполнение',grp(cy(7.1,7.1,1.2,0x1b2336,0,.8,0,.5,.4),...[[-3.4,-3.65],[2.4,-3.65],[-3.4,1.25],[2.4,1.25]].map(q=>cy(.3,.3,1.9,0xc9d3ea,q[0],2.35,q[1],.9,.3))),[0,0,0],[0,-2,0]);
+// 2 LED ring
+const lr=grp(new THREE.Mesh(new THREE.TorusGeometry(7.35,.22,12,96),mat(0x0b0e16,.8,.3)));lr.children[0].rotation.x=Math.PI/2;
+const LED=[];for(let i=0;i<24;i++){const k=new THREE.Mesh(new THREE.SphereGeometry(.24,12,12),new THREE.MeshBasicMaterial({color:0x3de0ff}));k.userData.led=1;const a=i/24*Math.PI*2;k.position.set(Math.cos(a)*7.5,0,Math.sin(a)*7.5);lr.add(k);LED.push(k)}
+part('Светодиодное кольцо','Состояния без слов','24 RGB-светодиода NeoPixel: «вижу тебя», «слушаю», «думаю», «говорю».','~$12','WS2812B · 5V · 1 линия данных',lr,[0,10.5,0],[0,-9,0]);
+// 3 regulator
+part('Блок питания 5V 10A','Питание','Понижающий преобразователь питает компьютер, сервоприводы и подсветку одной шиной.','~$15','Buck · 5V / 10A',grp(bx(3.6,.2,2.4,0x1a4fb0,0,0,0,.2,.5),bx(1.3,.8,1,0xb9c4d8,-.9,.5,-.4,.9,.3),cy(.45,.45,1,0x20242e,.9,.6,.5,.6,.4),cy(.4,.4,.9,0x20242e,.9,.55,-.5,.6,.4),bx(1.1,.7,.5,0x2fb36a,0,.45,1.0,.1,.6)),[-3,1.6,3.8],[-18,5,6]);
+// 4 Pi 5
+const pi=grp(bx(8.5,.25,5.6,0x167a43,0,0,0,.2,.55),bx(1.6,1.4,2.1,0xc7ccd6,3.5,.8,-1.7,.9,.3),bx(1.5,1.5,1.3,0x8aa0c8,3.5,.85,.5,.8,.3),bx(1.5,1.5,1.3,0x8aa0c8,3.5,.85,2.1,.8,.3),bx(1.7,.28,1.7,0xd7dbe4,-.5,.27,0,.9,.25),bx(5.2,.9,.5,0x0c0d12,0,.55,-2.5,.2,.6),bx(.9,.5,.9,0x101319,-3.6,.4,2,.5,.4),bx(1.1,.2,.7,0xdcdcdc,-3.9,.22,-.4,.9,.3));
+part('Raspberry Pi 5 · 8 ГБ','Главный процессор','Мозг устройства: оркестрация LLM, логика личности и памяти работают локально.','~$80','4 ядра · 8 ГБ ОЗУ · PCIe',pi,[-.5,3.45,-1.2],[0,6.5,0]);
+// 5 Coral
+part('Google Coral USB','Ускоритель ИИ','Edge-TPU: распознавание лиц и звука без облака — быстро и приватно.','~$60','USB 3.0 · 4 TOPS',grp(bx(6,1.4,3.4,0xb4bfd4,0,0,0,.95,.25),...Array.from({length:9},(_,i)=>bx(.12,.2,3.2,0x8f9bb4,-2.4+i*.6,.78,0,.9,.3)),bx(1.2,.7,1.8,0x2a2f3c,3.5,0,0,.8,.3),bx(2.2,.04,.9,0x3de0ff,-1.6,.72,1.05,.2,.4,{emissive:0x3de0ff,emissiveIntensity:.5})),[-.5,7.2,-1.2],[0,13.5,0]);
+// 6 switch
+part('Тумблер приватности','Kill-switch','Физически рвёт цепь сенсоров. Выключен — камера и микрофоны слепы и глухи на уровне железа.','~$3','DPDT · аппаратный',grp(bx(1.6,1.6,1.6,0x20242e,0,0,0,.5,.5),cy(.45,.45,1,0xc7ccd6,1.2,0,0,.95,.25).rotateZ(Math.PI/2),cy(.16,.18,1.9,0xff9d2e,2.1,.6,0,.7,.3).rotateZ(-.5)),[5.6,6,2],[19,4,6]);
+// 7 mic array
+const mic=grp(cy(4.6,4.6,.3,0x0d1220,0,0,0,.6,.35),...Array.from({length:12},(_,i)=>{const a=i/12*6.283;const k=cy(.16,.16,.1,0x3de0ff,Math.cos(a)*3.6,.2,Math.sin(a)*3.6,.1,.4,{emissive:0x3de0ff,emissiveIntensity:1.3});return k}),...[0,1,2,3].map(i=>{const a=i*1.5708+.78;return cy(.28,.28,.14,0xc7ccd6,Math.cos(a)*4.1,.2,Math.sin(a)*4.1,.9,.3)}));
+part('ReSpeaker Mic Array v2.0','Слух','4 микрофона с beamforming и шумоподавлением: слышит голос с другого конца комнаты.','~$90','USB · 4 микрофона · 12 LED',mic,[0,14.65,0],[0,21.5,0]);
+// 8 pan servo
+part('Сервопривод поворота','Гимбал · Pan','MG90S поворачивает голову по горизонтали и следит за человеком.','~$6','PWM · 180°',servo(),[0,16.25,0],[0,29,0]);
+// 9 yoke
+part('Вилка гимбала','Гимбал · рама','Печатная вилка соединяет оба сервопривода и держит камеру.','~$1.2','PETG · 40% заполнение',grp(bx(11.4,.3,2.6,0x2a3550,0,0,0,.5,.4),bx(.4,4,2.6,0x2a3550,5,2.15,0,.5,.4),cy(.9,.9,.3,0xdfe6f5,0,-.2,0,.5,.4)),[0,18.2,0],[0,35.5,0]);
+// 10 tilt servo
+part('Сервопривод наклона','Гимбал · Tilt','Второй MG90S наклоняет камеру вверх-вниз, чтобы смотреть в глаза.','~$6','PWM · 180°',servo().rotateZ(-Math.PI/2),[-6.4,20.6,0],[-14,41,0]);
+// 11 camera
+const lens=(x,r)=>grp(cy(r,r,.3,0x05060a,x,0,1.3,.9,.15,{},Math.PI/2),cy(r*.55,r*.55,.32,0x16233a,x,0,1.32,1,.05,{emissive:0x3de0ff,emissiveIntensity:.25},Math.PI/2));
+part('Intel RealSense D435i','Зрение и глубина','Стереокамера с IR-проектором и IMU: видит комнату в 3D и узнаёт людей, даже в шляпе.','~$350','USB 3 · 3D · 1280×720',grp(bx(9,2.5,2.5,0x0d0f16,0,0,0,.7,.3),bx(8.6,2.1,.1,0x04050a,0,0,1.26,.95,.08),bx(7.6,.14,1.2,0xc7ccd6,0,1.28,0,.95,.3),lens(-3.3,.38),lens(-1.2,.5),lens(1.3,.38),lens(3.2,.45)),[0,20.6,0],[0,42,0]);
+const ORDER=[11,10,9,8,7,5,4,3,6,2,1,0];
+// floor, scan, particles
+const fc=document.createElement('canvas');fc.width=fc.height=256;const fx=fc.getContext('2d'),gr=fx.createRadialGradient(128,128,0,128,128,128);gr.addColorStop(0,'rgba(61,224,255,.55)');gr.addColorStop(.45,'rgba(123,107,255,.16)');gr.addColorStop(1,'rgba(0,0,0,0)');fx.fillStyle=gr;fx.fillRect(0,0,256,256);
+const fl=new THREE.Group();const disc=new THREE.Mesh(new THREE.CircleGeometry(46,64),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(fc),transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));disc.rotation.x=-Math.PI/2;fl.add(disc);
+[12,20,30].forEach((r,i)=>{const k=new THREE.Mesh(new THREE.RingGeometry(r,r+.12,96),new THREE.MeshBasicMaterial({color:0x3de0ff,transparent:true,opacity:.35-i*.09,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending}));k.rotation.x=-Math.PI/2;k.position.y=.02;fl.add(k)});G.add(fl);
+const scan=new THREE.Mesh(new THREE.TorusGeometry(8.6,.05,8,96),new THREE.MeshBasicMaterial({color:0x3de0ff,transparent:true,opacity:.9,blending:THREE.AdditiveBlending}));scan.rotation.x=Math.PI/2;G.add(scan);
+const N=260,pp=new Float32Array(N*3);for(let i=0;i<N;i++){pp[i*3]=(Math.random()-.5)*130;pp[i*3+1]=Math.random()*90-30;pp[i*3+2]=(Math.random()-.5)*80}
+const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pp,3));sc.add(new THREE.Points(pg,new THREE.PointsMaterial({color:0x7ad7ff,size:.35,transparent:true,opacity:.55,depthWrite:false,blending:THREE.AdditiveBlending})));
+function layout(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+addEventListener('resize',layout);layout();
+const IN=document.getElementById('info'),it=document.getElementById('it'),LD=document.getElementById('ld'),L1=document.getElementById('ln1'),DT=document.getElementById('dt'),wp=new THREE.Vector3(),bb=new THREE.Box3(),CY=new THREE.Color(0x3de0ff);
+let ex=0,exT=0,x=0,xT=0,y=0,yT=0,hi=-1,lastHi=-2;
+function frame(now){
+  const mode=cur===S.length-1?2:(S[cur].dataset.t==='02 · Устройство'?1:0),el=(now-t0)/1000,mob=innerWidth<700;let sO=1;
+  if(cur===0){xT=mob?0:.2;yT=0;exT=0;hi=-1}
+  else if(mode===1){xT=mob?0:.2;yT=0;const T=4,per=2.4,cyc=T+ORDER.length*per+1.5,t=el%cyc;
+    if(t<T){exT=0;hi=-1}else if(t<T+ORDER.length*per){exT=1;hi=ORDER[Math.floor((t-T)/per)]}else{exT=0;hi=-1}}
+  else if(mode===2){xT=0;yT=.17;exT=0;hi=-1;sO=1}else{sO=0;hi=-1}
+  cv.style.opacity=mob&&mode!==2?sO*.28:sO;
+  ex+=(exT-ex)*.04;x+=(xT-x)*.05;
+  y+=(yT-y)*.05;G.rotation.y+=exT?.004:.008;
+  const dist=(58+ex*50)*(cam.aspect<1?1.7:1),ly=11-ex*4;
+  cam.position.set(Math.sin(el*.2)*4,ly+7+ex*8,dist);cam.lookAt(0,ly,0);cam.setViewOffset(innerWidth,innerHeight,-x*innerWidth,y*innerHeight,innerWidth,innerHeight);
+  fl.position.y=-.1-ex*29.5;
+  scan.visible=ex<.04;scan.position.y=11+Math.sin(el*1.6)*10.5;
+  let hs=0;LED.forEach((k,i)=>{const w=.5+.5*Math.sin(el*2.2-i*.5);const h=.5+.22*w;k.material.color.setHSL(h,1,.3+.3*w);hs+=h});core.color.setHSL(hs/24,1,.55);core.intensity=1.2+.6*Math.sin(el*2.2);
+  P.forEach((o,i)=>{const u=o.userData,on=i===hi;o.position.lerpVectors(u.pos,u.ex,ex);o.scale.lerp(V(1,1,1).multiplyScalar(on?1.08:1),.12);
+    u.mats.forEach(m=>{m[0].emissive.lerp(on?CY:m[1],.12);m[0].emissiveIntensity=on?Math.max(.45,m[2]):m[2]})});
+  const pa=pg.attributes.position;for(let i=0;i<N;i++){pa.array[i*3+1]+=.025;if(pa.array[i*3+1]>60)pa.array[i*3+1]=-30}pa.needsUpdate=true;
+  if(hi!==lastHi){lastHi=hi;if(hi>=0){const u=P[hi].userData;it.textContent=String(ORDER.indexOf(hi)+1).padStart(2,'0')+' / '+ORDER.length+' · '+u.tag;document.getElementById('in').textContent=u.name;document.getElementById('id').textContent=u.desc;document.getElementById('isp').textContent=u.spec;document.getElementById('ip').textContent=u.price;IN.classList.add('v')}else IN.classList.remove('v')}
+  if(sO>0)R.render(sc,cam);
+  if(hi>=0&&!mob&&ex>.8){bb.setFromObject(P[hi]).getCenter(wp);wp.project(cam);const px=(wp.x+1)/2*innerWidth,py=(1-wp.y)/2*innerHeight,r=IN.getBoundingClientRect();L1.setAttribute('x1',r.right+6);L1.setAttribute('y1',r.top+r.height/2);L1.setAttribute('x2',px);L1.setAttribute('y2',py);DT.setAttribute('cx',px);DT.setAttribute('cy',py);LD.style.opacity=1}else LD.style.opacity=0;
+  requestAnimationFrame(frame)}
+go(0);requestAnimationFrame(frame);
+</script>
+<script>
+try{const T=window.Telegram&&Telegram.WebApp;if(T){T.ready();T.expand();
+if(T.disableVerticalSwipes)T.disableVerticalSwipes();
+if(T.setHeaderColor)T.setHeaderColor('#05070d');if(T.setBackgroundColor)T.setBackgroundColor('#05070d')}}catch(e){}
+</script>
+</body>
+</html>
